@@ -59,7 +59,7 @@ app.post("/webhooks/authorize", async (req, res) => {
   }
 });
 
-// Webhook: تسجيل كل الأحداث العامة (30 حدث مثلاً)
+// Webhook: تسجيل كل الأحداث العامة
 app.post("/webhooks/events", async (req, res) => {
   try {
     const { event, merchant, created_at, data } = req.body;
@@ -85,6 +85,26 @@ app.post("/webhooks/events", async (req, res) => {
   } catch (err) {
     console.error("❌ Error handling general webhook:", err);
     res.sendStatus(500);
+  }
+});
+
+// API: عرض آخر الأحداث من قاعدة البيانات
+app.get("/api/events", async (req, res) => {
+  try {
+    await client.connect();
+    const db = client.db("zyada");
+    const logs = db.collection("webhook_logs");
+
+    const events = await logs
+      .find({})
+      .sort({ received_at: -1 })
+      .limit(100)
+      .toArray();
+
+    res.json(events);
+  } catch (err) {
+    console.error("❌ Error fetching events:", err);
+    res.status(500).json({ error: "Failed to fetch events" });
   }
 });
 
