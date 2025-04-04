@@ -1,24 +1,17 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-
-const app = express();
-const PORT = process.env.PORT || 8080;
-
-app.use(cors());
-app.use(bodyParser.json()); // لتفكيك البيانات القادمة من سلة
-
-// نقطة استقبال Webhook من سلة
 app.post("/webhooks/authorize", (req, res) => {
   try {
-    const payload = req.body.payload;
+    console.log("🔥 Webhook Triggered!");
+    console.log("📦 Full Body:", req.body);
 
-    if (!payload || !payload.access_token) {
-      console.log("❌ Webhook received but payload is invalid:", req.body);
-      return res.status(400).json({ message: "Invalid payload" });
+    // جرب القراءة من req.body مباشرة
+    const access_token = req.body.access_token || req.body?.payload?.access_token;
+    const refresh_token = req.body.refresh_token || req.body?.payload?.refresh_token;
+    const store_id = req.body.store_id || req.body?.payload?.store_id;
+
+    if (!access_token || !store_id) {
+      console.log("❌ Missing access_token or store_id!");
+      return res.status(400).json({ error: "Missing required data" });
     }
-
-    const { access_token, refresh_token, store_id } = payload;
 
     console.log("✅ Webhook received from Salla!");
     console.log("🛍️ Store ID:", store_id);
@@ -30,12 +23,4 @@ app.post("/webhooks/authorize", (req, res) => {
     console.error("❌ Error handling Webhook:", error);
     res.sendStatus(500);
   }
-});
-
-app.get("/", (req, res) => {
-  res.send("🚀 Zyada.io Webhook server is running.");
-});
-
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
 });
