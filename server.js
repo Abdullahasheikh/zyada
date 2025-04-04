@@ -3,22 +3,22 @@ app.post("/webhooks/authorize", (req, res) => {
     console.log("🔥 Webhook Triggered!");
     console.log("📦 Full Body:", req.body);
 
-    // جرب القراءة من req.body مباشرة
-    const access_token = req.body.access_token || req.body?.payload?.access_token;
-    const refresh_token = req.body.refresh_token || req.body?.payload?.refresh_token;
-    const store_id = req.body.store_id || req.body?.payload?.store_id;
+    const data = req.body.data;
 
-    if (!access_token || !store_id) {
-      console.log("❌ Missing access_token or store_id!");
-      return res.status(400).json({ error: "Missing required data" });
+    if (!data || !data.access_token) {
+      console.log("❌ Missing data or access_token!");
+      return res.status(400).json({ error: "Missing required fields" });
     }
+
+    const { access_token, refresh_token, token_type, store_id } = data;
 
     console.log("✅ Webhook received from Salla!");
     console.log("🛍️ Store ID:", store_id);
     console.log("🔑 Access Token:", access_token);
     console.log("🔁 Refresh Token:", refresh_token);
+    console.log("🧾 Token Type:", token_type);
 
-    res.sendStatus(200);
+    res.sendStatus(200); // ضروري لسلة
   } catch (error) {
     console.error("❌ Error handling Webhook:", error);
     res.sendStatus(500);
