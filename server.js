@@ -1,8 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const axios = require("axios");
-require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -10,32 +8,35 @@ const PORT = process.env.PORT || 8080;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Redirect URI (called after user authorizes app)
-app.get("/callback", async (req, res) => {
-  const code = req.query.code;
-  if (!code) return res.status(400).send("No code provided");
-
+// Webhook: استلام التوكن عند التثبيت
+app.post("/webhooks/authorize", (req, res) => {
   try {
-    const tokenResponse = await axios.post("https://accounts.salla.sa/oauth2/token", {
-      grant_type: "authorization_code",
-      code,
-      client_id: process.env.SALLA_CLIENT_ID,
-      client_secret: process.env.SALLA_CLIENT_SECRET,
-      redirect_uri: process.env.REDIRECT_URI
-    });
+    console.log("🔥 Webhook Triggered!");
+    console.log("📦 Full Body:", req.body);
 
-    console.log("✅ Access Token Response:", tokenResponse.data);
+    const data = req.body.data;
 
-    res.send("🎉 Authorization successful! You can close this window.");
-  } catch (error) {
-    console.error("❌ Error getting token:", error.response?.data || error.message);
-    res.status(500).send("Error exchanging code for token");
+    if (!data || !data.access_token) {
+      console.log("❌ Missing access_token in webhook!");
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    console.log("✅ Access Token:", data.access_token);
+    console.log("🔁 Refresh Token:", data.refresh_token);
+    console.log("🛍️ Store ID:", data.store_id || req.body.merchant);
+
+    // هنا ممكن نحفظ التوكن في قاعدة بيانات لاحقًا
+
+    res.sendStatus(200);
+  } catch (err) {
+    console.error("❌ Error handling webhook:", err);
+    res.sendStatus(500);
   }
 });
 
-// Default route
+// للفحص
 app.get("/", (req, res) => {
-  res.send("🚀 Zyada.io Auth server is running.");
+  res.send("🚀 Webhook-only auth server is running.");
 });
 
 app.listen(PORT, () => {
