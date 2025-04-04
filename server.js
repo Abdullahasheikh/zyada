@@ -1,3 +1,13 @@
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+
+const app = express(); // هذا السطر كان ناقص في كودك الحالي!
+const PORT = process.env.PORT || 8080;
+
+app.use(cors());
+app.use(bodyParser.json()); // لتحليل JSON من سلة
+
 app.post("/webhooks/authorize", (req, res) => {
   try {
     console.log("🔥 Webhook Triggered!");
@@ -18,9 +28,17 @@ app.post("/webhooks/authorize", (req, res) => {
     console.log("🔁 Refresh Token:", refresh_token);
     console.log("🧾 Token Type:", token_type);
 
-    res.sendStatus(200); // ضروري لسلة
+    res.sendStatus(200);
   } catch (error) {
     console.error("❌ Error handling Webhook:", error);
     res.sendStatus(500);
   }
+});
+
+app.get("/", (req, res) => {
+  res.send("🚀 Zyada.io Webhook server is running.");
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
 });
