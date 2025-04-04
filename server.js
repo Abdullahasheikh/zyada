@@ -1,3 +1,7 @@
+const { MongoClient } = require("mongodb");
+const mongoUri = process.env.MONGO_URI;
+const client = new MongoClient(mongoUri);
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
