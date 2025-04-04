@@ -59,6 +59,35 @@ app.post("/webhooks/authorize", async (req, res) => {
   }
 });
 
+// Webhook: تسجيل كل الأحداث العامة (30 حدث مثلاً)
+app.post("/webhooks/events", async (req, res) => {
+  try {
+    const { event, merchant, created_at, data } = req.body;
+
+    if (!event) {
+      return res.status(400).json({ error: "Missing event name" });
+    }
+
+    await client.connect();
+    const db = client.db("zyada");
+    const logs = db.collection("webhook_logs");
+
+    await logs.insertOne({
+      event,
+      merchant,
+      created_at: created_at || new Date(),
+      data,
+      received_at: new Date()
+    });
+
+    console.log(`📥 Event received: ${event}`);
+    res.sendStatus(200);
+  } catch (err) {
+    console.error("❌ Error handling general webhook:", err);
+    res.sendStatus(500);
+  }
+});
+
 app.get("/", (req, res) => {
   res.send("🚀 Webhook + MongoDB server is running.");
 });
